@@ -17,6 +17,7 @@ func InitHandler() http.Handler {
 	return r
 }
 
+// Make the api use the mongo db database
 type LongUrlRequest struct {
 	LongUrl string `json:"longUrl"`
 }
