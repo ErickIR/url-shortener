@@ -7,6 +7,15 @@ const (
 	base  = len(chars)
 )
 
+func StringToBase64(str string) string {
+	hashedStr := int64(hash(str))
+	if hashedStr < 0 {
+		hashedStr *= -1
+	}
+
+	return ToBase62(hashedStr)
+}
+
 func ToBase62(seed int64) string {
 	var base62String string
 
@@ -42,4 +51,12 @@ func indexOf(str string, s rune) int {
 	}
 
 	return -1
+}
+
+func hash(s string) int64 {
+	var h int64
+	for i := 0; i < len(s); i++ {
+		h = h*131 + int64(s[i])
+	}
+	return h
 }
