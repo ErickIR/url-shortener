@@ -11,6 +11,7 @@ import (
 	urlModule "github.com/erickir/tinyurl/internal/app/url"
 	"github.com/erickir/tinyurl/internal/config"
 	"github.com/erickir/tinyurl/internal/server"
+	"github.com/erickir/tinyurl/pkg/mssql"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -32,7 +33,7 @@ func setMiddlewares(mux *chi.Mux) {
 func startServerWithGracefullShutdown(ctx context.Context, server *server.Server) error {
 	go func() {
 		if err := server.StartHTTP(); err != nil {
-			log.Fatal("ERROR RUNNING SERVER: %w", err)
+			log.Fatal("ERROR RUNNING SERVER: ", err)
 		}
 	}()
 
@@ -52,18 +53,25 @@ func main() {
 	ctx := context.Background()
 	mux := chi.NewMux()
 
+	config := config.New()
+
 	setMiddlewares(mux)
 
-	urlHandlers := urlModule.Setup()
+	sqlConfig := config.SqlServer
+
+	db, err := mssql.NewClient(ctx, sqlConfig.Address, sqlConfig.User, sqlConfig.Password, sqlConfig.Port, sqlConfig.Database)
+	if err != nil {
+		log.Fatal("ERROR CONNECTING TO DATABASE: ", err.Error())
+	}
+
+	urlHandlers := urlModule.Setup(db)
 
 	mux.Mount("/url", urlHandlers.Routes())
 
-	config := config.New()
-
 	s := server.New(mux, config)
 
-	err := startServerWithGracefullShutdown(ctx, s)
+	err = startServerWithGracefullShutdown(ctx, s)
 	if err != nil {
-		log.Fatal("ERROR SHUTTING DOWN THE SERVER")
+		log.Fatal("ERROR SHUTTING DOWN THE SERVER: ", err.Error())
 	}
 }

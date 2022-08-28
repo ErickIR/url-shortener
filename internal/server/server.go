@@ -20,10 +20,10 @@ type Server struct {
 
 func New(h http.Handler, cfg *config.Config) *Server {
 	httpServer := &http.Server{
-		Addr:           fmt.Sprint(cfg.Port),
+		Addr:           fmt.Sprint(cfg.ServerConfig.Port),
 		Handler:        h,
-		ReadTimeout:    cfg.ReadTimeout,
-		WriteTimeout:   cfg.WriteTimeout,
+		ReadTimeout:    cfg.ServerConfig.ReadTimeout,
+		WriteTimeout:   cfg.ServerConfig.WriteTimeout,
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 

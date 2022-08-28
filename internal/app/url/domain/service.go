@@ -2,11 +2,20 @@ package domain
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/erickir/tinyurl/internal/app/url/models"
+	"github.com/erickir/tinyurl/internal/app/url/storage"
 	urlStorage "github.com/erickir/tinyurl/internal/app/url/storage"
 	"github.com/erickir/tinyurl/pkg/base62"
+)
+
+var (
+	ErrTinyURLNotFound = errors.New("short url not found")
+
+	ErrInvalidURLReceived = errors.New("invalid url received")
 )
 
 type Service interface {
@@ -26,6 +35,10 @@ func NewURLService(storage urlStorage.Storage) *URLService {
 
 func (service *URLService) GetLongURL(ctx context.Context, shortID string) (string, error) {
 	tinyUrl, err := service.storage.GetTinyURLByID(ctx, shortID)
+	if errors.Is(err, storage.ErrShortURLNotFound) {
+		return "", ErrTinyURLNotFound
+	}
+
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +49,7 @@ func (service *URLService) GetLongURL(ctx context.Context, shortID string) (stri
 func (service *URLService) SaveURL(ctx context.Context, rawURL string) (*models.TinyURLResponse, error) {
 	_, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidURLReceived
 	}
 
 	shortURL := base62.StringToBase64(rawURL)
@@ -46,7 +59,9 @@ func (service *URLService) SaveURL(ctx context.Context, rawURL string) (*models.
 		LongURL: rawURL,
 	}
 
-	if err := service.storage.SaveURL(ctx, tinyURL); err != nil {
+	err = service.storage.SaveURL(ctx, tinyURL)
+	if err != nil {
+		fmt.Println("ERROR SAVING URL: ", err.Error())
 		return nil, err
 	}
 
