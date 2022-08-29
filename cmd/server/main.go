@@ -14,6 +14,7 @@ import (
 	"github.com/erickir/tinyurl/pkg/mssql"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -47,6 +48,13 @@ func startServerWithGracefullShutdown(ctx context.Context, server *server.Server
 	defer cancel()
 
 	return server.Shutdown(shutdownCtx)
+}
+
+func init() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file: ", err)
+	}
 }
 
 func main() {
