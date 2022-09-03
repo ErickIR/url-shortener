@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -18,7 +19,9 @@ import (
 )
 
 var (
-	port = ":3000"
+	loadEnv = godotenv.Load
+
+	loadEnvOnce sync.Once
 )
 
 const (
@@ -50,14 +53,20 @@ func startServerWithGracefullShutdown(ctx context.Context, server *server.Server
 	return server.Shutdown(shutdownCtx)
 }
 
-func init() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file: ", err)
-	}
+func loadEnvConfig() error {
+	var err error
+	loadEnvOnce.Do(func() {
+		err = loadEnv(".env")
+	})
+
+	return err
 }
 
 func main() {
+	if err := loadEnvConfig(); err != nil {
+		log.Fatal("ERROR LOADING ENVIRONMENT VARIABLES")
+	}
+
 	ctx := context.Background()
 	mux := chi.NewMux()
 
