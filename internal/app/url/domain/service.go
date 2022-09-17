@@ -33,7 +33,7 @@ func NewURLService(storage urlStorage.Storage) *URLService {
 	}
 }
 
-func (service *URLService) GetLongURL(ctx context.Context, shortID string) (string, error) {
+func (service URLService) GetLongURL(ctx context.Context, shortID string) (string, error) {
 	tinyUrl, err := service.storage.GetTinyURLByID(ctx, shortID)
 	if errors.Is(err, storage.ErrShortURLNotFound) {
 		return "", ErrTinyURLNotFound
@@ -46,7 +46,7 @@ func (service *URLService) GetLongURL(ctx context.Context, shortID string) (stri
 	return tinyUrl.LongURL, nil
 }
 
-func (service *URLService) SaveURL(ctx context.Context, rawURL string) (*models.TinyURLResponse, error) {
+func (service URLService) SaveURL(ctx context.Context, rawURL string) (*models.TinyURLResponse, error) {
 	_, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, ErrInvalidURLReceived
