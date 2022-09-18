@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/erickir/tinyurl/internal/config"
+	"github.com/erickir/tinyurl/pkg/config"
 )
 
 const (

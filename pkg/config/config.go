@@ -1,10 +1,34 @@
 package config
 
 import (
+	"log"
+	"sync"
 	"time"
 
 	"github.com/erickir/tinyurl/pkg/env"
+	"github.com/joho/godotenv"
 )
+
+var (
+	loadEnv = godotenv.Load
+
+	loadEnvOnce sync.Once
+)
+
+func init() {
+	if err := loadEnvConfig(); err != nil {
+		log.Fatal("ERROR LOADING ENVIRONMENT VARIABLES")
+	}
+}
+
+func loadEnvConfig() error {
+	var err error
+	loadEnvOnce.Do(func() {
+		err = loadEnv(".env")
+	})
+
+	return err
+}
 
 func New() *Config {
 	return &Config{

@@ -46,14 +46,12 @@ func (h *Handler) getLongUrl() http.HandlerFunc {
 
 		longUrl, err := h.service.GetLongURL(ctx, shortID)
 		if errors.Is(err, domain.ErrTinyURLNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(api.ResourceNotFoundError)
+			api.RespondWithJSON(w, http.StatusNotFound, api.ResourceNotFoundError)
 			return
 		}
 
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(api.InternalServerError)
+			api.RespondWithJSON(w, http.StatusInternalServerError, api.InternalServerError)
 			return
 		}
 
@@ -69,24 +67,21 @@ func (h *Handler) shortenUrl() http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&requestBody)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(api.InternalServerError)
+			api.RespondWithJSON(w, http.StatusInternalServerError, api.InternalServerError)
 			return
 		}
 
-		response, err := h.service.SaveURL(ctx, requestBody.LongURL)
+		tinyURL, err := h.service.SaveURL(ctx, requestBody.LongURL)
 		if errors.Is(err, domain.ErrInvalidURLReceived) {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(api.NewErrorResponse(err))
+			api.RespondWithJSON(w, http.StatusBadRequest, api.NewErrorResponse(err))
 			return
 		}
 
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(api.InternalServerError)
+			api.RespondWithJSON(w, http.StatusInternalServerError, api.InternalServerError)
 			return
 		}
 
-		json.NewEncoder(w).Encode(response)
+		api.RespondWithJSON(w, http.StatusOK, tinyURL.ToResponse())
 	}
 }

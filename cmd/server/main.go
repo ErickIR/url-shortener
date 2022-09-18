@@ -5,34 +5,19 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
 	urlModule "github.com/erickir/tinyurl/internal/app/url"
-	"github.com/erickir/tinyurl/internal/config"
 	"github.com/erickir/tinyurl/internal/server"
+	"github.com/erickir/tinyurl/pkg/api"
+	"github.com/erickir/tinyurl/pkg/config"
 	"github.com/erickir/tinyurl/pkg/mssql"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/joho/godotenv"
-)
-
-var (
-	loadEnv = godotenv.Load
-
-	loadEnvOnce sync.Once
 )
 
 const (
 	shutdownTimeout = 15 * time.Second
 )
-
-func setMiddlewares(mux *chi.Mux) {
-	mux.Use(middleware.AllowContentType("application/json"))
-	mux.Use(middleware.Logger)
-	mux.Use(middleware.SetHeader("Content-Type", "application/json"))
-}
 
 func startServerWithGracefullShutdown(ctx context.Context, server *server.Server) error {
 	go func() {
@@ -53,26 +38,11 @@ func startServerWithGracefullShutdown(ctx context.Context, server *server.Server
 	return server.Shutdown(shutdownCtx)
 }
 
-func loadEnvConfig() error {
-	var err error
-	loadEnvOnce.Do(func() {
-		err = loadEnv(".env")
-	})
-
-	return err
-}
-
 func main() {
-	if err := loadEnvConfig(); err != nil {
-		log.Fatal("ERROR LOADING ENVIRONMENT VARIABLES")
-	}
-
 	ctx := context.Background()
-	mux := chi.NewMux()
+	mux := api.NewMux()
 
 	config := config.New()
-
-	setMiddlewares(mux)
 
 	sqlConfig := config.SqlServer
 
@@ -83,7 +53,7 @@ func main() {
 
 	urlHandlers := urlModule.Setup(db)
 
-	mux.Mount("/url", urlHandlers.Routes())
+	mux.MountRoutes("/url", urlHandlers.Routes())
 
 	s := server.New(mux, config)
 

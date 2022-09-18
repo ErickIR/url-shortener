@@ -20,7 +20,7 @@ var (
 
 type Service interface {
 	GetLongURL(ctx context.Context, shortID string) (string, error)
-	SaveURL(ctx context.Context, rawURL string) (*models.TinyURLResponse, error)
+	SaveURL(ctx context.Context, rawURL string) (*models.TinyURL, error)
 }
 
 type URLService struct {
@@ -46,7 +46,7 @@ func (service URLService) GetLongURL(ctx context.Context, shortID string) (strin
 	return tinyUrl.LongURL, nil
 }
 
-func (service URLService) SaveURL(ctx context.Context, rawURL string) (*models.TinyURLResponse, error) {
+func (service URLService) SaveURL(ctx context.Context, rawURL string) (*models.TinyURL, error) {
 	_, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, ErrInvalidURLReceived
@@ -65,5 +65,5 @@ func (service URLService) SaveURL(ctx context.Context, rawURL string) (*models.T
 		return nil, err
 	}
 
-	return tinyURL.ToResponse(), nil
+	return tinyURL, nil
 }
