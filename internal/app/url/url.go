@@ -1,16 +1,14 @@
 package url
 
 import (
-	"github.com/erickir/tinyurl/internal/app/url/domain"
-	urlHandlers "github.com/erickir/tinyurl/internal/app/url/handlers"
 	"github.com/erickir/tinyurl/internal/app/url/storage"
 	"github.com/erickir/tinyurl/pkg/mssql"
 )
 
-func Setup(db mssql.SQL) *urlHandlers.TinyUrlHandler {
+func Setup(db mssql.SQL) *TinyUrlHandler {
 	store := storage.NewSQLStorage(db)
 
-	urlService := domain.NewURLService(store)
+	urlService := NewURLService(store)
 
-	return urlHandlers.New(urlService)
+	return New(urlService)
 }

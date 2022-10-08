@@ -1,4 +1,4 @@
-package handlers
+package url
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/erickir/tinyurl/internal/app/url/domain"
 	"github.com/erickir/tinyurl/pkg/api"
 	"github.com/go-chi/chi/v5"
 )
@@ -17,14 +16,14 @@ const (
 )
 
 type TinyUrlHandler struct {
-	service domain.Service
+	service Service
 }
 
 type saveURLRequest struct {
 	LongURL string `json:"long_url,omitempty"`
 }
 
-func New(service domain.Service) *TinyUrlHandler {
+func New(service Service) *TinyUrlHandler {
 	return &TinyUrlHandler{
 		service: service,
 	}
@@ -50,7 +49,7 @@ func (h *TinyUrlHandler) getLongUrl() http.HandlerFunc {
 		shortID := chi.URLParam(r, shortIDParamKey)
 
 		longUrl, err := h.service.GetLongURL(ctx, shortID)
-		if errors.Is(err, domain.ErrTinyURLNotFound) {
+		if errors.Is(err, ErrTinyURLNotFound) {
 			api.RespondWithJSON(w, http.StatusNotFound, api.ResourceNotFoundError)
 			return
 		}
@@ -77,7 +76,7 @@ func (h *TinyUrlHandler) shortenUrl() http.HandlerFunc {
 		}
 
 		tinyURL, err := h.service.SaveURL(ctx, requestBody.LongURL)
-		if errors.Is(err, domain.ErrInvalidURLReceived) {
+		if errors.Is(err, ErrInvalidURLReceived) {
 			api.RespondWithJSON(w, http.StatusBadRequest, api.NewErrorResponse(err))
 			return
 		}
