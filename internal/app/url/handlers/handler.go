@@ -12,10 +12,11 @@ import (
 )
 
 const (
-	shortIDParamKey = "SHORT_URL_ID"
+	shortIDParamKey    = "SHORT_URL_ID"
+	urlResourcePathKey = "/url"
 )
 
-type Handler struct {
+type TinyUrlHandler struct {
 	service domain.Service
 }
 
@@ -23,13 +24,17 @@ type saveURLRequest struct {
 	LongURL string `json:"long_url,omitempty"`
 }
 
-func New(service domain.Service) *Handler {
-	return &Handler{
+func New(service domain.Service) *TinyUrlHandler {
+	return &TinyUrlHandler{
 		service: service,
 	}
 }
 
-func (h *Handler) Routes() chi.Router {
+func (h TinyUrlHandler) Path() string {
+	return urlResourcePathKey
+}
+
+func (h TinyUrlHandler) Routes() http.Handler {
 	r := chi.NewRouter()
 
 	r.Get(fmt.Sprintf("/{%s}", shortIDParamKey), h.getLongUrl())
@@ -38,7 +43,7 @@ func (h *Handler) Routes() chi.Router {
 	return r
 }
 
-func (h *Handler) getLongUrl() http.HandlerFunc {
+func (h *TinyUrlHandler) getLongUrl() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -59,7 +64,7 @@ func (h *Handler) getLongUrl() http.HandlerFunc {
 	}
 }
 
-func (h *Handler) shortenUrl() http.HandlerFunc {
+func (h *TinyUrlHandler) shortenUrl() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 

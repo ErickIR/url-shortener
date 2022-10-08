@@ -43,8 +43,8 @@ func New() *Config {
 			Address:  env.GetString("DATABASE_ADDRESS", "localhost"),
 			Port:     env.GetString("SQL_SERVER_PORT", "1433"),
 			User:     env.GetString("DATABASE_USER", "sa"),
-			Password: env.GetString("PASSWORD", ""),
-			Database: env.GetString("DATABASE_NAME", "TINY_URL_DATABASE"),
+			Password: env.GetString("PASSWORD", "p@ssw0rd"),
+			Database: env.GetString("DATABASE_NAME", "TinyUrlDatabase"),
 		},
 	}
 }

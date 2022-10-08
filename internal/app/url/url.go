@@ -7,7 +7,7 @@ import (
 	"github.com/erickir/tinyurl/pkg/mssql"
 )
 
-func Setup(db mssql.SQL) *urlHandlers.Handler {
+func Setup(db mssql.SQL) *urlHandlers.TinyUrlHandler {
 	store := storage.NewSQLStorage(db)
 
 	urlService := domain.NewURLService(store)

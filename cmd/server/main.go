@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	urlModule "github.com/erickir/tinyurl/internal/app/url"
 	"github.com/erickir/tinyurl/internal/server"
@@ -15,27 +14,20 @@ import (
 	"github.com/erickir/tinyurl/pkg/mssql"
 )
 
-const (
-	shutdownTimeout = 15 * time.Second
-)
-
-func startServerWithGracefullShutdown(ctx context.Context, server *server.Server) error {
-	go func() {
-		if err := server.StartHTTP(); err != nil {
-			log.Fatal("ERROR RUNNING SERVER: ", err)
-		}
-	}()
-
+func startServer(ctx context.Context, server *server.Server) {
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-	signal.Notify(quit, os.Kill, syscall.SIGTERM)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)
 
-	<-quit
-
-	shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
+	serverCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	return server.Shutdown(shutdownCtx)
+	go func() {
+		signal := <-quit
+		log.Println("shutdown_signal_received: ", signal.String())
+		cancel()
+	}()
+
+	server.StartHTTP(serverCtx)
 }
 
 func main() {
@@ -53,12 +45,11 @@ func main() {
 
 	urlHandlers := urlModule.Setup(db)
 
-	mux.MountRoutes("/url", urlHandlers.Routes())
+	mux.MountHandler(urlHandlers)
 
 	s := server.New(mux, config)
 
-	err = startServerWithGracefullShutdown(ctx, s)
-	if err != nil {
-		log.Fatal("ERROR SHUTTING DOWN THE SERVER: ", err.Error())
-	}
+	startServer(ctx, s)
+
+	s.Shutdown(ctx)
 }

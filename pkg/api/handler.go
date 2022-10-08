@@ -10,12 +10,17 @@ type Mux struct {
 	*chi.Mux
 }
 
+type Handler interface {
+	Path() string
+	Routes() http.Handler
+}
+
 func NewMux() *Mux {
 	return &Mux{
 		chi.NewMux(),
 	}
 }
 
-func (m *Mux) MountRoutes(path string, handler http.Handler) {
-	m.Mount(path, handler)
+func (m *Mux) MountHandler(handler Handler) {
+	m.Mount(handler.Path(), handler.Routes())
 }

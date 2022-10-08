@@ -3,13 +3,16 @@ package server
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/erickir/tinyurl/pkg/config"
 )
 
 const (
-	maxHeaderBytes = 1 << 20
+	maxHeaderBytes  = 1 << 20
+	shutdownTimeout = 15 * time.Second
 )
 
 // Server handles the server configuration
@@ -33,10 +36,25 @@ func New(h http.Handler, cfg *config.Config) *Server {
 	}
 }
 
-func (s *Server) StartHTTP() error {
-	return s.httpServer.ListenAndServe()
+func (s *Server) StartHTTP(ctx context.Context) {
+	go s.startHttpServer()
+
+	<-ctx.Done()
+	log.Println("server_stopped")
+}
+
+func (s *Server) startHttpServer() {
+	log.Println("server_started")
+	if err := s.httpServer.ListenAndServe(); err != http.ErrServerClosed {
+		log.Println("server_error")
+		panic(err)
+	}
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	return s.httpServer.Shutdown(ctx)
+	log.Println("server_shutdown")
+
+	shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
+	defer cancel()
+	return s.httpServer.Shutdown(shutdownCtx)
 }
