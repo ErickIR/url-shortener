@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	_ Storage = &SQLStorage{}
+	_ Storage = &URLStorage{}
 )
 
 func TestNewSQLStorage(t *testing.T) {
@@ -16,7 +16,7 @@ func TestNewSQLStorage(t *testing.T) {
 
 	mockClient := mssql.SQLMockClient{}
 
-	sqlStorage := NewSQLStorage(&mockClient)
+	sqlStorage := NewURLStorage(&mockClient)
 
 	c.NotNil(sqlStorage)
 }

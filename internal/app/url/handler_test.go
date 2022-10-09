@@ -1,16 +1,19 @@
 package url
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
-	"github.com/erickir/tinyurl/internal/app/url/domain"
+	"github.com/erickir/tinyurl/internal/app/url/models"
+	"github.com/erickir/tinyurl/internal/app/url/storage"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewHandler(t *testing.T) {
 	c := require.New(t)
 
-	service := domain.URLService{}
+	service := URLService{}
 
 	handler := New(service)
 	c.NotNil(handler)
@@ -19,7 +22,7 @@ func TestNewHandler(t *testing.T) {
 func TestRoutes(t *testing.T) {
 	c := require.New(t)
 
-	service := domain.URLService{}
+	service := URLService{}
 
 	handler := New(service)
 	c.NotNil(handler)
@@ -28,11 +31,27 @@ func TestRoutes(t *testing.T) {
 	c.NotNil(routes)
 }
 
-func TestGetLongUrlHandler(t *testing.T) {
+func TestGetLongUrlHandlerSuccess(t *testing.T) {
 	c := require.New(t)
 
-	service := domain.URLService{}
+	mockStorage := storage.Mock()
 
-	handler := New(service)
-	c.NotNil(handler)
+	tinyURL := &models.TinyURL{
+		ShortID: "xyz",
+		LongURL: "xyz.com",
+	}
+
+	mockStorage.SetMockTinyURL(tinyURL)
+
+	urlService := NewURLService(mockStorage)
+	handler := New(urlService).getLongUrl()
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/xyz", nil)
+
+	handler.ServeHTTP(rec, req)
+
+	c.Equal(http.StatusTemporaryRedirect, rec.Result().StatusCode)
+	c.Equal(rec.Result().Header.Get("Location"), tinyURL.LongURL)
+
 }

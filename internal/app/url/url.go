@@ -6,7 +6,7 @@ import (
 )
 
 func Setup(db mssql.SQL) *TinyUrlHandler {
-	store := storage.NewSQLStorage(db)
+	store := storage.NewURLStorage(db)
 
 	urlService := NewURLService(store)
 

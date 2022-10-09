@@ -16,17 +16,17 @@ var (
 	tinyUrlsTableName = "TINY_URLS"
 )
 
-type SQLStorage struct {
+type URLStorage struct {
 	db mssql.SQL
 }
 
-func NewSQLStorage(db mssql.SQL) *SQLStorage {
-	return &SQLStorage{
+func NewURLStorage(db mssql.SQL) *URLStorage {
+	return &URLStorage{
 		db: db,
 	}
 }
 
-func (storage *SQLStorage) GetTinyURLByID(ctx context.Context, shortID string) (*models.TinyURL, error) {
+func (storage *URLStorage) GetTinyURLByID(ctx context.Context, shortID string) (*models.TinyURL, error) {
 	query := fmt.Sprintf("SELECT short_id, long_url FROM %s WHERE short_id = @p1", tinyUrlsTableName)
 
 	rows, err := storage.db.QueryContext(ctx, query, shortID)
@@ -52,7 +52,7 @@ func (storage *SQLStorage) GetTinyURLByID(ctx context.Context, shortID string) (
 	return tinyURL, nil
 }
 
-func (storage *SQLStorage) SaveURL(ctx context.Context, tinyURL *models.TinyURL) error {
+func (storage *URLStorage) SaveURL(ctx context.Context, tinyURL *models.TinyURL) error {
 	query := fmt.Sprintf("INSERT INTO %s (short_id, long_url) VALUES (@p1, @p2)", tinyUrlsTableName)
 
 	_, err := storage.db.ExecContext(ctx, query, tinyURL.ShortID, tinyURL.LongURL)

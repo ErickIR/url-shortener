@@ -23,11 +23,18 @@ func TestGetLongURLSuccess(t *testing.T) {
 
 	mockStorage := &storage.StorageMock{}
 
+	tinyURL := &models.TinyURL{
+		ShortID: "short-id",
+		LongURL: "short-id.com",
+	}
+
+	mockStorage.SetMockTinyURL(tinyURL)
+
 	service := NewURLService(mockStorage)
 
 	longURL, err := service.GetLongURL(context.Background(), "short-id")
 	c.NoError(err)
-	c.Equal(storage.MockTinyURL.LongURL, longURL)
+	c.Equal(tinyURL.LongURL, longURL)
 }
 
 func TestGetLongURLForcedFailure(t *testing.T) {
