@@ -11,5 +11,5 @@ func TestNewConfig(t *testing.T) {
 
 	cfg := New()
 
-	c.Equal(":8080", cfg.Port)
+	c.Equal(":8080", cfg.ServerConfig.Port)
 }

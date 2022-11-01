@@ -6,6 +6,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/denisenkom/go-mssqldb v0.12.2 // indirect
 	github.com/go-chi/chi/v5 v5.0.3
+	github.com/gofiber/fiber/v2 v2.39.0 // indirect
 	github.com/google/go-cmp v0.5.5 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/stretchr/testify v1.8.0 // indirect

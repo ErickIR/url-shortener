@@ -3,11 +3,10 @@ package url
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/erickir/tinyurl/pkg/api"
-	"github.com/go-chi/chi/v5"
+	"github.com/gofiber/fiber/v2"
 )
 
 const (
@@ -33,59 +32,49 @@ func (h TinyUrlHandler) Path() string {
 	return urlResourcePathKey
 }
 
-func (h TinyUrlHandler) Routes() http.Handler {
-	r := chi.NewRouter()
-
-	r.Get(fmt.Sprintf("/{%s}", shortIDParamKey), h.getLongUrl())
-	r.Post("/", h.shortenUrl())
-
-	return r
+func (h TinyUrlHandler) Routes(app fiber.Router) {
+	app.Get("/:"+shortIDParamKey, h.GetLongUrl())
+	app.Post("/", h.ShortenUrl())
 }
 
-func (h *TinyUrlHandler) getLongUrl() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+func (h *TinyUrlHandler) GetLongUrl() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := c.Context()
 
-		shortID := chi.URLParam(r, shortIDParamKey)
+		shortID := c.Params(shortIDParamKey, "")
 
 		longUrl, err := h.service.GetLongURL(ctx, shortID)
 		if errors.Is(err, ErrTinyURLNotFound) {
-			api.RespondWithJSON(w, http.StatusNotFound, api.ResourceNotFoundError)
-			return
+			return api.RespondError(c, http.StatusNotFound, api.ResourceNotFoundError)
 		}
 
 		if err != nil {
-			api.RespondWithJSON(w, http.StatusInternalServerError, api.InternalServerError)
-			return
+			return api.RespondError(c, http.StatusInternalServerError, api.InternalServerError)
 		}
 
-		http.Redirect(w, r, longUrl, http.StatusTemporaryRedirect)
+		return c.Redirect(longUrl)
 	}
 }
 
-func (h *TinyUrlHandler) shortenUrl() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+func (h *TinyUrlHandler) ShortenUrl() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := c.Context()
 
 		var requestBody saveURLRequest
 
-		err := json.NewDecoder(r.Body).Decode(&requestBody)
-		if err != nil {
-			api.RespondWithJSON(w, http.StatusInternalServerError, api.InternalServerError)
-			return
+		if err := json.Unmarshal(c.Body(), &requestBody); err != nil {
+			return api.RespondError(c, http.StatusNotFound, api.InternalServerError)
 		}
 
 		tinyURL, err := h.service.SaveURL(ctx, requestBody.LongURL)
 		if errors.Is(err, ErrInvalidURLReceived) {
-			api.RespondWithJSON(w, http.StatusBadRequest, api.NewErrorResponse(err))
-			return
+			return api.RespondError(c, http.StatusBadRequest, api.NewErrorResponse(err))
 		}
 
 		if err != nil {
-			api.RespondWithJSON(w, http.StatusInternalServerError, api.InternalServerError)
-			return
+			return api.RespondError(c, http.StatusInternalServerError, api.InternalServerError)
 		}
 
-		api.RespondWithJSON(w, http.StatusOK, tinyURL.ToResponse())
+		return api.RespondWithJSON(c, http.StatusOK, tinyURL.ToResponse())
 	}
 }

@@ -40,11 +40,11 @@ func New() *Config {
 			Debug:          env.GetBool("DEBUG", false),
 		},
 		SqlServer: &Database{
-			Address:  env.GetString("DATABASE_ADDRESS", "localhost"),
-			Port:     env.GetString("SQL_SERVER_PORT", "1433"),
-			User:     env.GetString("DATABASE_USER", "sa"),
-			Password: env.GetString("PASSWORD", "p@ssw0rd"),
-			Database: env.GetString("DATABASE_NAME", "TinyUrlDatabase"),
+			Address:  env.GetString("DATABASE_ADDRESS", ""),
+			Port:     env.GetString("DATABASE_PORT", ""),
+			User:     env.GetString("DATABASE_USER", ""),
+			Password: env.GetString("PASSWORD", ""),
+			Database: env.GetString("DATABASE_NAME", ""),
 		},
 	}
 }

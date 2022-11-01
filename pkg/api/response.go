@@ -3,14 +3,28 @@ package api
 import (
 	"encoding/json"
 	"log"
-	"net/http"
+
+	"github.com/gofiber/fiber/v2"
 )
 
-func RespondWithJSON(w http.ResponseWriter, statusCode int, body interface{}) {
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(statusCode)
+func RespondError(c *fiber.Ctx, statusCode int, body interface{}) error {
+	c.Set("Content-type", "application/json")
 
-	if err := json.NewEncoder(w).Encode(body); err != nil {
+	data, err := json.Marshal(body)
+	if err != nil {
 		log.Println("encoding error: ", err)
 	}
+
+	return fiber.NewError(statusCode, string(data))
+}
+
+func RespondWithJSON(c *fiber.Ctx, statusCode int, body interface{}) error {
+	c.Set("Content-type", "application/json")
+
+	data, err := json.Marshal(body)
+	if err != nil {
+		log.Println("encoding error: ", err)
+	}
+
+	return c.SendString(string(data))
 }

@@ -9,9 +9,9 @@ import (
 
 	urlModule "github.com/erickir/tinyurl/internal/app/url"
 	"github.com/erickir/tinyurl/internal/server"
-	"github.com/erickir/tinyurl/pkg/api"
 	"github.com/erickir/tinyurl/pkg/config"
 	"github.com/erickir/tinyurl/pkg/mssql"
+	"github.com/gofiber/fiber/v2"
 )
 
 func startServer(ctx context.Context, server *server.Server) {
@@ -32,7 +32,7 @@ func startServer(ctx context.Context, server *server.Server) {
 
 func main() {
 	ctx := context.Background()
-	mux := api.NewMux()
+	app := fiber.New()
 
 	config := config.New()
 
@@ -45,11 +45,9 @@ func main() {
 
 	urlHandlers := urlModule.Setup(db)
 
-	mux.MountHandler(urlHandlers)
+	urlApi := app.Group(urlHandlers.Path())
 
-	s := server.New(mux, config)
+	urlHandlers.Routes(urlApi)
 
-	startServer(ctx, s)
-
-	s.Shutdown(ctx)
+	log.Fatal(app.Listen(config.ServerConfig.Port))
 }

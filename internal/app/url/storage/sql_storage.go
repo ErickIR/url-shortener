@@ -13,7 +13,7 @@ var (
 	// ErrShortURLNotFound
 	ErrShortURLNotFound = errors.New("short url not found")
 
-	tinyUrlsTableName = "TINY_URLS"
+	tinyUrlsTableName = "dbo.urls"
 )
 
 type URLStorage struct {
